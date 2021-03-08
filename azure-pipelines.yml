@@ -31,11 +31,8 @@ stages:
          scriptLocation: 'inlineScript'
          inlineScript: |
            echo 'Creating staging slot for PR...'
-              az webapp deployment slot create \
-                  --name $(webApp.name) \
-                  --resource-group $(webApp.resourceGroup) \
-                  --slot staging-pr-$(System.PullRequest.PullRequestId)
-              echo "Created staging slot for PR " $(System.PullRequest.PullRequestId)
+              az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)
+           echo "Created staging slot for PR " $(System.PullRequest.PullRequestId)
 
      - task: Docker@1
        displayName: 'Docker Build'
