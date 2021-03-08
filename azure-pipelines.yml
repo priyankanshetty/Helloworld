@@ -5,7 +5,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-    github.oauthToken: 'b8f3a051222edd3342c3ca0d7c3abc25ba566142'
+    #github.oauthToken: 'b8f3a051222edd3342c3ca0d7c3abc25ba566142'
     webApp.name: 'testingdevopsnew'
     webApp.resourceGroup: 'MBV-CSP-NL-RG-DevOps'
     BuildConfiguration: 'release'
@@ -49,7 +49,6 @@ stages:
                   $body = '{"body":"' + $message + '"}'
                   Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
                   Write-Output "Added staging url as comment to GH pull request"
-
 
 - stage: 'MainDeploy'
   pool:
