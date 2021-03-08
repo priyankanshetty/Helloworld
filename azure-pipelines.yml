@@ -11,7 +11,7 @@ pool:
 
 variables:
     github.oauthToken: 'b8f3a051222edd3342c3ca0d7c3abc25ba566142'
-    webApp.name: 'testingdevopsnow'
+    webApp.name: 'testingdevopsnew'
     webApp.resourceGroup: 'MBV-CSP-NL-RG-DevOps'
     BuildConfiguration: 'release'
 
@@ -35,29 +35,8 @@ stages:
                   --name $(webApp.name) \
                   --resource-group $(webApp.resourceGroup) \
                   --slot staging-pr-$(System.PullRequest.PullRequestId)
-              echo "Created staging slot for PR " $(System.PullRequest.PullRequestId)            
-    
-     - task: PowerShell@2
-       condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
-       displayName: 'Write Staging URL to PR as Comment'
-       env:
-         GITHUB_OATH_TOKEN: $(github.oauthToken)
-       inputs:
-         targetType: 'inline'
-         script: |
-              Write-Output "Adding comment to GitHub pull request via rest api..."
-                #create GitHub REST api URL
-                  $prNumber = $(System.PullRequest.PullRequestNumber)
-                  $prInfoUrl = 'https://api.github.com/repos/priyankanshetty/Helloworld/pulls/' + $prNumber
-                  $response = Invoke-RestMethod -URI $prInfoUrl
-                  $commentUrl = $response.issue_url + '/comments'           
-            
-                # add comment to the PR in GitHub using GitHub REST api
-                  $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-                  $message = "Created staging environment for PR - https://$(webApp.name)-" + $prNumber + ".azurewebsites.net/"
-                  $body = '{"body":"' + $message + '"}'
-                  Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
-                  Write-Output "Added staging url as comment to GH pull request"
+              echo "Created staging slot for PR " $(System.PullRequest.PullRequestId)    
+
      - task: Docker@1
        displayName: 'Docker Build'
        inputs:
@@ -69,7 +48,7 @@ stages:
          imageName: 'artifact:$(Build.BuildId)'
 
      - task: Docker@1
-       displayName: 'Docker Build'
+       displayName: 'Docker Push'
        inputs:
          containerregistrytype: 'Azure Container Registry'
          azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
