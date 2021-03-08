@@ -5,7 +5,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-    #github.oauthToken: 'b8f3a051222edd3342c3ca0d7c3abc25ba566142'
+    github.oauthToken: 'cd1b13cd8da563a6e7f9acdd2ee0f4e0b002df32'
     webApp.name: 'testingdevopsnew'
     webApp.resourceGroup: 'MBV-CSP-NL-RG-DevOps'
     BuildConfiguration: 'release'
