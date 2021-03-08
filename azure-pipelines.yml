@@ -92,7 +92,7 @@ stages:
          DockerRepository: 'artifact'
          DockerImageTag: '$(Build.BuildId)'
 
-- stage: 'Main Deploy'
+- stage: 'MainDeploy'
   pool:
       vmImage : windows-2019
   dependsOn: Build
