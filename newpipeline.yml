@@ -15,7 +15,7 @@ steps:
   displayName: 'Write Staging URL to PR as Comment'
   condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
   env:
-    GITHUB_OATH_TOKEN: $(github.oathToken)
+    GITHUB_OATH_TOKEN: $(github.oauthToken)
   inputs:
     targetType: 'inline'
     script: |
