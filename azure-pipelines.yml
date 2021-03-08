@@ -67,7 +67,7 @@ stages:
 
      - task: PowerShell@2
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
-       displayName: 'Updating previewing URL to PR as Comment'
+       displayName: 'Write Staging URL to PR as Comment'
        env:
          GITHUB_OATH_TOKEN: $(github.oauthToken)
        inputs:
@@ -82,7 +82,7 @@ stages:
             
                 # add comment to the PR in GitHub using GitHub REST api
                   $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-                  $message = "Created staging environment for PR - https://$(webApp.name)-staging-pr-" + $prNumber + ".azurewebsites.net/"
+                  $message = "Created staging environment for PR - https://testingdevopsnew-staging-pr-" + $prNumber + ".azurewebsites.net/"
                   $body = '{"body":"' + $message + '"}'
                   Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
                   Write-Output "Added staging url as comment to GH pull request"
