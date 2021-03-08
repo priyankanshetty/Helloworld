@@ -1,0 +1,33 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: PowerShell@2
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+    displayName: 'Staging URL to PR as Comment'
+    env:
+      GITHUB_OATH_TOKEN: $(github.oauthToken)
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Output "Adding comment to GitHub pull request via rest api..."
+                     #create GitHub REST api URL
+                       $prNumber = $(System.PullRequest.PullRequestNumber)
+                       $prInfoUrl = 'https://api.github.com/repos/priyankanshetty/Helloworld/pulls/' + $prNumber
+                       $response = Invoke-RestMethod -URI $prInfoUrl
+                       $commentUrl = $response.issue_url + '/comments'           
+                   
+                     # add comment to the PR in GitHub using GitHub REST api
+                       $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
+                       $message =  "Previewing environment for PR can be accessed using https://$(webApp.name)-staging-pr-" + $prNumber + ".azurewebsites.net/"
+                       $body = '{"body":"' + $message + '"}'
+                       Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
+                       Write-Output "Added staging url as comment to GH pull request"
