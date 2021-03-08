@@ -10,12 +10,6 @@ variables:
     webApp.resourceGroup: 'MBV-CSP-NL-RG-DevOps'
     BuildConfiguration: 'release'
 
-stages:
-- stage: Previewstaging
-
-  jobs:
-  - job: Previewstaging
-    continueOnError: false
     steps:
      - task: AzureCLI@2
        enabled: true
@@ -27,7 +21,6 @@ stages:
         inlineScript: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
         addSpnToEnvironment: true
         useGlobalConfig: true
-
 
      - task: PowerShell@2
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
@@ -51,24 +44,11 @@ stages:
                   Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
                   Write-Output "Added staging url as comment to GH pull request"
 
-- stage: 'MainDeploy'
-  pool:
-      vmImage : windows-2019
-  dependsOn: Previewstaging
-  jobs:
-  - deployment: WinAgent007
-    displayName: main-Deploy
-    # creates an environment if it doesn't exist
-    environment: 'Prod'
-    strategy:
-      runOnce:
-        deploy:
-          steps:    
-                - task: AzureRmWebAppDeployment@4
-                  enabled: false
-                  displayName: Deploy to staging slot
-                  condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
-                  inputs:
+     - task: AzureRmWebAppDeployment@4
+       enabled: false
+       displayName: Deploy to staging slot
+       condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+       inputs:
                     ConnectionType: 'AzureRM'
                     azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
                     appType: 'webAppContainer'
@@ -77,13 +57,13 @@ stages:
                     DockerRepository: 'artifact'
                     DockerImageTag: '$(Build.BuildId)'
 
-                - task: AzureCLI@2
-                  displayName: Deletion of webapp slot
-                  condition: and(succeeded(), startsWith(variables['Build.SourceVersionMessage'], 'Merged PR '))
-                  inputs:
-                    azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-                    scriptType: 'pscore'
-                    scriptLocation: 'inlineScript'
-                    inlineScript: 'az webapp deployment slot delete --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
-                    addSpnToEnvironment: true
-                    useGlobalConfig: true
+     - task: AzureCLI@2
+       displayName: Deletion of webapp slot
+       condition: and(succeeded(), startsWith(variables['Build.SourceVersionMessage'], 'Merged PR '))
+       inputs:
+        azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az webapp deployment slot delete --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
+        addSpnToEnvironment: true
+        useGlobalConfig: true
