@@ -21,18 +21,6 @@ steps:
          dockerFile: 'HelloWorld/Dockerfile'
          imageName: 'artifact:$(Build.BuildId)'
 
-     - task: Bash@3
-       inputs:
-         targetType: 'inline'
-         script: |
-           az webapp deployment slot create \
-                  --name $(webApp.name) \
-                  --resource-group $(webApp.resourceGroup) \
-                  --slot staging-pr-$(System.PullRequest.PullRequestId)
-              echo "Created staging slot for PR " $(System.PullRequest.PullRequestId)
-           
-             displayName: 'Create CI Staging Slot For PR'
-             condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
      - task: PowerShell@2
        inputs:
          targetType: 'inline'
