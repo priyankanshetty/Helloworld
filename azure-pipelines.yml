@@ -9,13 +9,24 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-#variables:
- # servicePrincipal.name: 'http://AbelDeployDemoBackupPrincipal'
-  #servicePrincipal.tenant: '72f988bf-86f1-41af-91ab-2d7cd011db47'
-  #BuildConfiguration: 'release'
 
 steps:
-
+     - task: AzureCLI@2
+       displayName: 'Create CI Staging Slot For PR'
+       condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+       inputs:
+         azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+         scriptType: 'ps'
+         scriptLocation: 'inlineScript'
+         inlineScript: |
+           echo 'Creating staging slot for PR...'
+              az webapp deployment slot create \
+                  --name $(webApp.name) \
+                  --resource-group $(webApp.resourceGroup) \
+                  --slot staging-pr-$(System.PullRequest.PullRequestId)
+              echo "Created staging slot for PR " $(System.PullRequest.PullRequestId)
+             
+    
      - task: PowerShell@2
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
        displayName: 'Write Staging URL to PR as Comment'
@@ -33,7 +44,7 @@ steps:
             
                 # add comment to the PR in GitHub using GitHub REST api
                   $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-                  $message = "Created staging environment for PR - https://abeltestwebapp-staging-pr-" + $prNumber + ".azurewebsites.net/"
+                  $message = "Created staging environment for PR - https://$(webApp.name)-" + $prNumber + ".azurewebsites.net/"
                   $body = '{"body":"' + $message + '"}'
                   Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
                   Write-Output "Added staging url as comment to GH pull request"
