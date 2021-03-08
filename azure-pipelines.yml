@@ -10,6 +10,26 @@ pool:
   vmImage: 'windows-2019'
 
 steps:
+
+     - task: Docker@1
+       displayName: 'Docker Build'
+       inputs:
+         containerregistrytype: 'Azure Container Registry'
+         azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
+         command: 'Build an image'
+         dockerFile: 'HelloWorld/HelloWorld/Dockerfile'
+         imageName: 'artifact:$(Build.BuildId)'
+
+     - task: Docker@1
+       displayName: 'Docker Push'
+       inputs:
+         containerregistrytype: 'Azure Container Registry'
+         azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
+         command: 'Push an image'
+         imageName: 'artifact:$(Build.BuildId)'
+
      - task: PowerShell@2
        inputs:
          targetType: 'inline'
