@@ -13,7 +13,7 @@ variables:
 steps:
 - task: PowerShell@2
   displayName: 'Write Staging URL to PR as Comment'
-  condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+  #condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
   env:
     GITHUB_OATH_TOKEN: $(github.oauthToken)
   inputs:
@@ -31,4 +31,5 @@ steps:
        $body = '{"body":"' + $message + '"}'
        Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
        Write-Output "Added staging url as comment to GH pull request"
+    showWarnings: true
 
