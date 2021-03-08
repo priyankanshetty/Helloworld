@@ -28,7 +28,7 @@ steps:
             
                 # add comment to the PR in GitHub using GitHub REST api
                   $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-                  $message = "Created staging environment for PR - https://testingdevopsnew-staging-pr-" + $prNumber + ".azurewebsites.net/ If the provided url works as expected kindly go to the pipeline and approve the Prod stage"
+                  $message =  Previewing environment for PR can be accessed using https://testingdevopsnew-staging-pr-" + $prNumber + ".azurewebsites.net/"
                   $body = '{"body":"' + $message + '"}'
                   Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
                   Write-Output "Added staging url as comment to GH pull request"
