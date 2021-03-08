@@ -9,6 +9,11 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+    github.oauthToken: 'cd1b13cd8da563a6e7f9acdd2ee0f4e0b002df32'
+    webApp.name: 'testingdevopsnew'
+    webApp.resourceGroup: 'MBV-CSP-NL-RG-DevOps'
+
 steps:
   - task: PowerShell@2
     condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
