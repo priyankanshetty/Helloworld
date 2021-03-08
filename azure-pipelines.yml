@@ -28,43 +28,6 @@ stages:
         addSpnToEnvironment: true
         useGlobalConfig: true
 
-     - task: Docker@1
-       enabled: false
-       displayName: 'Docker Build'
-       inputs:
-         containerregistrytype: 'Azure Container Registry'
-         azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
-         command: 'Build an image'
-         dockerFile: 'HelloWorld/Dockerfile'
-         imageName: 'artifact:$(Build.BuildId)'
-
-     - task: Docker@1
-       enabled: false
-       displayName: 'Docker Push'
-       inputs:
-         containerregistrytype: 'Azure Container Registry'
-         azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
-         command: 'Push an image'
-         imageName: 'artifact:$(Build.BuildId)'
-
-     - task: AzureRmWebAppDeployment@4
-       enabled: false
-       displayName: Deploy to staging slot
-       condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))       
-       inputs:
-         ConnectionType: 'AzureRM'
-         azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-         appType: 'webAppContainer'
-         WebAppName: '$(webApp.name)'
-         deployToSlotOrASE: true
-         ResourceGroupName: '$(webApp.resourceGroup)'
-         SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
-         DockerNamespace: 'mbvcspnlcr.azurecr.io'
-         DockerRepository: 'artifact'
-         DockerImageTag: '$(Build.BuildId)'
-
      - task: PowerShell@2
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
        displayName: 'Write Staging URL to PR as Comment'
@@ -82,7 +45,7 @@ stages:
             
                 # add comment to the PR in GitHub using GitHub REST api
                   $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-                  $message = "Created staging environment for PR - https://abeltestwebapp-staging-pr-" + $prNumber + ".azurewebsites.net/"
+                  $message = "Created staging environment for PR - https://testingdevopsnew-staging-pr-" + $prNumber + ".azurewebsites.net/"
                   $body = '{"body":"' + $message + '"}'
                   Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
                   Write-Output "Added staging url as comment to GH pull request"
@@ -101,19 +64,6 @@ stages:
       runOnce:
         deploy:
           steps:    
-                - task: AzureRmWebAppDeployment@4
-                  enabled: false
-                  displayName: Deploy to staging slot
-                  condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
-                  inputs:
-                    ConnectionType: 'AzureRM'
-                    azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-                    appType: 'webAppContainer'
-                    WebAppName: '$(webApp.name)'
-                    DockerNamespace: 'mbvcspnlcr.azurecr.io'
-                    DockerRepository: 'artifact'
-                    DockerImageTag: '$(Build.BuildId)'
-
                 - task: AzureCLI@2
                   displayName: Deletion of webapp slot
                   condition: and(succeeded(), startsWith(variables['Build.SourceVersionMessage'], 'Merged PR '))
