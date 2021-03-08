@@ -23,13 +23,10 @@ stages:
     continueOnError: false
     steps:
 
-     - task: AzureCLI@2
+     - task: Bash@3
        inputs:
-        azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-        scriptType: 'pscore'
-        scriptLocation: 'inlineScript'
-        inlineScript: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
-        addSpnToEnvironment: true
+        targetType: 'inline'
+        script: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
 
      - task: Docker@1
        displayName: 'Docker Build'
