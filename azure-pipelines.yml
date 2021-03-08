@@ -9,8 +9,19 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+    github.oauthToken: 'b8f3a051222edd3342c3ca0d7c3abc25ba566142'
+    webApp.name: 'testingdevopsnow'
+    webApp.resourceGroup: 'MBV-CSP-NL-RG-DevOps'
+    BuildConfiguration: 'release'
 
-steps:
+stages:
+- stage: Build
+
+  jobs:
+  - job: Previewstaging
+    continueOnError: false
+    steps:
      - task: AzureCLI@2
        displayName: 'Create CI Staging Slot For PR'
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
@@ -24,8 +35,7 @@ steps:
                   --name $(webApp.name) \
                   --resource-group $(webApp.resourceGroup) \
                   --slot staging-pr-$(System.PullRequest.PullRequestId)
-              echo "Created staging slot for PR " $(System.PullRequest.PullRequestId)
-             
+              echo "Created staging slot for PR " $(System.PullRequest.PullRequestId)            
     
      - task: PowerShell@2
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
@@ -48,6 +58,24 @@ steps:
                   $body = '{"body":"' + $message + '"}'
                   Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
                   Write-Output "Added staging url as comment to GH pull request"
+     - task: Docker@1
+       displayName: 'Docker Build'
+       inputs:
+         containerregistrytype: 'Azure Container Registry'
+         azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
+         command: 'Build an image'
+         dockerFile: 'HelloWorld/Dockerfile'
+         imageName: 'artifact:$(Build.BuildId)'
+
+     - task: Docker@1
+       displayName: 'Docker Build'
+       inputs:
+         containerregistrytype: 'Azure Container Registry'
+         azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
+         command: 'Push an image'
+         imageName: 'artifact:$(Build.BuildId)'
 
      - task: AzureRmWebAppDeployment@4
        displayName: Deploy to staging slot
@@ -64,3 +92,27 @@ steps:
          DockerRepository: 'artifact'
          DockerImageTag: '$(Build.BuildId)'
 
+- stage: 'Main Deploy'
+  pool:
+      vmImage : windows-2019
+  dependsOn: Build
+  jobs:
+  - deployment: WinAgent007
+    displayName: main-Deploy
+    # creates an environment if it doesn't exist
+    environment: 'Prod'
+    strategy:
+      runOnce:
+        deploy:
+          steps:    
+                - task: AzureRmWebAppDeployment@4
+                  displayName: Deploy to staging slot
+                  condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+                  inputs:
+                    ConnectionType: 'AzureRM'
+                    azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+                    appType: 'webAppContainer'
+                    WebAppName: '$(webApp.name)'
+                    DockerNamespace: 'mbvcspnlcr.azurecr.io'
+                    DockerRepository: 'artifact'
+                    DockerImageTag: '$(Build.BuildId)'
