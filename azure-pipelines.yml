@@ -14,19 +14,24 @@ variables:
     webApp.name: 'testingdevopsnew'
     webApp.resourceGroup: 'MBV-CSP-NL-RG-DevOps'
     BuildConfiguration: 'release'
+    servicePrincipal.name: 'http://AbelDeployDemoBackupPrincipal'
+    servicePrincipal.tenant: '72f988bf-86f1-41af-91ab-2d7cd011db47'
 
 stages:
-- stage: Build
+- stage: Previewstaging
 
   jobs:
   - job: Previewstaging
     continueOnError: false
     steps:
-
-     - task: Bash@3
+     - task: AzureCLI@2
        inputs:
-        targetType: 'inline'
-        script: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
+        azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
+        addSpnToEnvironment: true
+        useGlobalConfig: true
 
      - task: Docker@1
        displayName: 'Docker Build'
@@ -65,7 +70,7 @@ stages:
 - stage: 'MainDeploy'
   pool:
       vmImage : windows-2019
-  dependsOn: Build
+  dependsOn: Previewstaging
   jobs:
   - deployment: WinAgent007
     displayName: main-Deploy
