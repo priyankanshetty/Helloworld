@@ -30,6 +30,6 @@ steps:
           $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
           $message = "Created staging environment for PR - https://test-staging-pr-" + $prNumber + ".azurewebsites.net/"
           $body = '{"body":"' + $message + '"}'
-          Invoke-WebRequest -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
+          Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
           Write-Output "Added staging url as comment to GH pull request"
 
