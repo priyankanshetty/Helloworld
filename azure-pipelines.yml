@@ -10,7 +10,7 @@ variables:
     webApp.resourceGroup: 'MBV-CSP-NL-RG-DevOps'
     BuildConfiguration: 'release'
 
-    steps:
+steps:
      - task: AzureCLI@2
        enabled: true
        displayName: Creation of webapp slot
