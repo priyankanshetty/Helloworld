@@ -37,17 +37,15 @@ steps:
          command: 'Push an image'
          imageName: 'artifact:$(Build.BuildId)'
 
+
      - task: AzureRmWebAppDeployment@4
-       enabled: true
-       displayName: Deploy to staging slot
-       condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))       
        inputs:
          ConnectionType: 'AzureRM'
          azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
          appType: 'webAppContainer'
-         WebAppName: '$(webApp.name)'
+         WebAppName: 'testingdevopsnew'
          deployToSlotOrASE: true
-         ResourceGroupName: '$(webApp.resourceGroup)'
+         ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
          SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
          DockerNamespace: 'mbvcspnlcr.azurecr.io'
          DockerRepository: 'artifact'
