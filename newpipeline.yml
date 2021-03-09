@@ -38,15 +38,19 @@ steps:
          imageName: 'artifact:$(Build.BuildId)'
 
 
-     - task: AzureWebAppContainer@1
+     - task: AzureRmWebAppDeployment@4
+       displayName: Deploy to staging slot
        inputs:
+         ConnectionType: 'AzureRM'
          azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-         appName: 'testingdevopsnew'
+         appType: 'webAppContainer'
+         WebAppName: '$(webApp.name)'
          deployToSlotOrASE: true
-         resourceGroupName: 'MBV-CSP-NL-RG-DevOps'
-         slotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
-         containers: 'mbvcspnlcr.azurecr.io/artifact:$(Build.BuildId)'
-         appSettings: '-ASPNETCORE_ENVIRONMENT Development'
+         ResourceGroupName: '$(webApp.resourceGroup)'
+         SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
+         DockerNamespace: 'mbvcspnlcr.azurecr.io'
+         DockerRepository: 'artifact'
+         DockerImageTag: '$(Build.BuildId)'
 
      - task: PowerShell@2
        displayName: Write Staging URL to PR as Commen
