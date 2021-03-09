@@ -12,7 +12,7 @@ stages:
     continueOnError: false
     steps:
      - task: AzureCLI@2
-       enabled: false
+       enabled: true
        displayName: Creation of webapp slot
        inputs:
         azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
@@ -23,7 +23,7 @@ stages:
         useGlobalConfig: true
 
      - task: Docker@1
-       enabled: false
+       enabled: true
        displayName: 'Docker Build'
        inputs:
          containerregistrytype: 'Azure Container Registry'
@@ -34,7 +34,7 @@ stages:
          imageName: 'artifact:$(Build.BuildId)'
 
      - task: Docker@1
-       enabled: false
+       enabled: true
        displayName: 'Docker Push'
        inputs:
          containerregistrytype: 'Azure Container Registry'
@@ -44,7 +44,7 @@ stages:
          imageName: 'artifact:$(Build.BuildId)'
 
      - task: PowerShell@2
-       enabled: false
+       enabled: true
        displayName: Write Staging URL to PR as Commen
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
        env:
