@@ -11,17 +11,6 @@ stages:
   - job: Build
     continueOnError: false
     steps:
-     - task: AzureCLI@2
-       enabled: true
-       displayName: Creation of Webapp slot
-       inputs:
-        azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-        scriptType: 'pscore'
-        scriptLocation: 'inlineScript'
-        inlineScript: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
-        addSpnToEnvironment: true
-        useGlobalConfig: true
-
      - task: Docker@1
        enabled: true
        displayName: 'Building the Docker Image'
@@ -43,9 +32,20 @@ stages:
          command: 'Push an image'
          imageName: 'artifact:$(Build.BuildId)'
 
+     - task: AzureCLI@2
+       enabled: true
+       displayName: Creation of Webapp slot
+       inputs:
+        azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
+        addSpnToEnvironment: true
+        useGlobalConfig: true
+
      - task: PowerShell@2
        enabled: true
-       displayName: Write Staging URL to PR as Commen
+       displayName: Updating the staging url to PR as a comment
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
        env:
          GITHUB_OATH_TOKEN: $(github.oauthToken)
@@ -69,7 +69,7 @@ stages:
   dependsOn: Build
   jobs:
   - deployment: Preview
-    displayName: Previewing-Deploy
+    displayName: Deploying the app to Staging environement
     # creates an environment if it doesn't exist
     environment: 'Previewing'
     strategy:
