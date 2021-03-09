@@ -45,6 +45,9 @@ steps:
          azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
          appType: 'webAppContainer'
          WebAppName: 'testingdevopslast'
+         deployToSlotOrASE: true
+         ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
+         SlotName: 'slot6'
          DockerNamespace: 'mbvcspnlcr.azurecr.io'
          DockerRepository: 'artifact'
          DockerImageTag: '43921'
