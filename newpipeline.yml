@@ -50,7 +50,7 @@ steps:
          AzureContainerRegistryLoginServer: mbvcspnlcr.azurecr.io
          AzureContainerRegistryTag: '43938'
          AzureContainerRegistryImage: 'artifact'
-         SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
+         SlotName: 'staging-pr-587660925'
 
 
      - task: PowerShell@2
