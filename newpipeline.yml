@@ -5,21 +5,69 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-  - task: PowerShell@2
-    displayName: Write Staging URL to PR as Commen
-    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
-    env:
-      GITHUB_OATH_TOKEN: $(github.oauthToken)
-    inputs:
-      targetType: 'inline'
-      script: |
-          $prNumber = $(System.PullRequest.PullRequestNumber)
-          $prInfoUrl = 'https://api.github.com/repos/priyankanshetty/Helloworld/pulls/' + $prNumber
-          $response = Invoke-RestMethod -URI $prInfoUrl
-          $commentUrl = $response.issue_url + '/comments'
-          Write-Output "P1 done"
-          $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-          $message = "Created staging environment for PR - https://test-staging-pr-" + $prNumber + ".azurewebsites.net/"
-          $body = '{"body":"' + $message + '"}'
-          Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
-          Write-Output "Added staging url as comment to GH pull request"
+     - task: AzureCLI@2
+       enabled: true
+       displayName: Creation of webapp slot
+       inputs:
+        azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
+        addSpnToEnvironment: true
+        useGlobalConfig: true
+
+     - task: Docker@1
+       enabled: true
+       displayName: 'Docker Build'
+       inputs:
+         containerregistrytype: 'Azure Container Registry'
+         azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
+         command: 'Build an image'
+         dockerFile: 'HelloWorld/Dockerfile'
+         imageName: 'artifact:$(Build.BuildId)'
+
+     - task: Docker@1
+       enabled: true
+       displayName: 'Docker Push'
+       inputs:
+         containerregistrytype: 'Azure Container Registry'
+         azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
+         command: 'Push an image'
+         imageName: 'artifact:$(Build.BuildId)'
+
+     - task: AzureRmWebAppDeployment@4
+       enabled: true
+       displayName: Deploy to staging slot
+       condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))       
+       inputs:
+         ConnectionType: 'AzureRM'
+         azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+         appType: 'webAppContainer'
+         WebAppName: '$(webApp.name)'
+         deployToSlotOrASE: true
+         ResourceGroupName: '$(webApp.resourceGroup)'
+         SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
+         DockerNamespace: 'mbvcspnlcr.azurecr.io'
+         DockerRepository: 'artifact'
+         DockerImageTag: '$(Build.BuildId)'
+
+     - task: PowerShell@2
+       displayName: Write Staging URL to PR as Commen
+       condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+       env:
+         GITHUB_OATH_TOKEN: $(github.oauthToken)
+       inputs:
+          targetType: 'inline'
+          script: |
+              $prNumber = $(System.PullRequest.PullRequestNumber)
+              $prInfoUrl = 'https://api.github.com/repos/priyankanshetty/Helloworld/pulls/' + $prNumber
+              $response = Invoke-RestMethod -URI $prInfoUrl
+              $commentUrl = $response.issue_url + '/comments'
+              Write-Output "P1 done"
+              $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
+              $message = "Created staging environment for PR - https://test-staging-pr-" + $prNumber + ".azurewebsites.net/"
+              $body = '{"body":"' + $message + '"}'
+              Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
+              Write-Output "Added staging url as comment to GH pull request"
