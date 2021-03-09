@@ -12,7 +12,7 @@ steps:
         azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
         scriptType: 'pscore'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot pr-$(System.PullRequest.PullRequestId)'
+        inlineScript: 'az webapp deployment slot create --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
         addSpnToEnvironment: true
         useGlobalConfig: true
 
@@ -48,11 +48,10 @@ steps:
          WebAppName: '$(webApp.name)'
          deployToSlotOrASE: true
          ResourceGroupName: '$(webApp.resourceGroup)'
-         SlotName: 'pr-$(System.PullRequest.PullRequestId)'
+         SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
          DockerNamespace: 'mbvcspnlcr.azurecr.io'
          DockerRepository: 'artifact'
          DockerImageTag: '$(Build.BuildId)'
-         AppSettings: '-ASPNETCORE_ENVIRONMENT Development'
 
      - task: PowerShell@2
        displayName: Write Staging URL to PR as Commen
@@ -68,7 +67,7 @@ steps:
               $commentUrl = $response.issue_url + '/comments'
               Write-Output "P1 done"
               $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-              $message = "Previewing url for PR - https://$(webApp.name)-pr-" + $(System.PullRequest.PullRequestId) + ".azurewebsites.net/swagger/index.html"
+              $message = "Previewing url for PR - https://$(webApp.name)-staging-pr-" + $(System.PullRequest.PullRequestId) + ".azurewebsites.net/swagger/index.html"
               $body = '{"body":"' + $message + '"}'
               Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
               Write-Output "Added previewing url as comment to the pull request"
