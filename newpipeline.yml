@@ -52,6 +52,7 @@ steps:
          DockerNamespace: 'mbvcspnlcr.azurecr.io'
          DockerRepository: 'artifact'
          DockerImageTag: '$(Build.BuildId)'
+         AppSettings: '-ASPNETCORE_ENVIRONMENT "Development"'
 
      - task: PowerShell@2
        displayName: Write Staging URL to PR as Commen
@@ -67,7 +68,7 @@ steps:
               $commentUrl = $response.issue_url + '/comments'
               Write-Output "P1 done"
               $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-              $message = "Previewing url for PR - https://test-staging-pr-" + $prNumber + ".azurewebsites.net/"
+              $message = "Previewing url for PR - https://test-staging-pr-" + $prNumber + ".azurewebsites.net/swagger/index.html"
               $body = '{"body":"' + $message + '"}'
               Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
               Write-Output "Added staging url as comment to GH pull request"
