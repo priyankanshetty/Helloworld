@@ -85,6 +85,7 @@ stages:
                 deployToSlotOrASE: true
                 ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
                 SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
+                DockerNamespace: 'mbvcspnlcr.azurecr.io'
                 DockerRepository: 'artifact'
                 DockerImageTag: '43921'
                 AppSettings: '-DOCKER_REGISTRY_SERVER_PASSWORD o=OCO3YcZ2D20710XZCNVrSnMNN=q8qc -DOCKER_REGISTRY_SERVER_URL https://mbvcspnlcr.azurecr.io -DOCKER_REGISTRY_SERVER_USERNAME mbvcspnlcr -ASPNETCORE_ENVIRONMENT Development'
