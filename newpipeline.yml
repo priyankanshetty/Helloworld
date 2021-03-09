@@ -68,7 +68,7 @@ steps:
               $commentUrl = $response.issue_url + '/comments'
               Write-Output "P1 done"
               $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
-              $message = "Previewing url for PR - https://$(webApp.name)-pr-" + $prNumber + ".azurewebsites.net/swagger/index.html"
+              $message = "Previewing url for PR - https://$(webApp.name)-pr-" + $(System.PullRequest.PullRequestId) + ".azurewebsites.net/swagger/index.html"
               $body = '{"body":"' + $message + '"}'
               Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
               Write-Output "Added previewing url as comment to the pull request"
