@@ -38,7 +38,7 @@ steps:
          imageName: 'artifact:$(Build.BuildId)'
 
      - task: AzureRmWebAppDeployment@4
-       enabled: true
+       enabled: false
        displayName: Deploy to staging slot
        condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))       
        inputs:
