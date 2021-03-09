@@ -13,7 +13,7 @@ stages:
     steps:
      - task: AzureCLI@2
        enabled: true
-       displayName: Creation of webapp slot
+       displayName: Creation of Webapp slot
        inputs:
         azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
         scriptType: 'pscore'
@@ -24,22 +24,22 @@ stages:
 
      - task: Docker@1
        enabled: true
-       displayName: 'Docker Build'
+       displayName: 'Building the Docker Image'
        inputs:
          containerregistrytype: 'Azure Container Registry'
          azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
+         azureContainerRegistry: '$(container.registry)'
          command: 'Build an image'
          dockerFile: 'HelloWorld/Dockerfile'
          imageName: 'artifact:$(Build.BuildId)'
 
      - task: Docker@1
        enabled: true
-       displayName: 'Docker Push'
+       displayName: 'Publishing the Docker Image'
        inputs:
          containerregistrytype: 'Azure Container Registry'
          azureSubscriptionEndpoint: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-         azureContainerRegistry: 'mbvcspnlcr.azurecr.io'
+         azureContainerRegistry: '$(container.registry)'
          command: 'Push an image'
          imageName: 'artifact:$(Build.BuildId)'
 
@@ -83,9 +83,45 @@ stages:
                 appType: 'webAppContainer'
                 WebAppName: 'testingdevopslast'
                 deployToSlotOrASE: true
-                ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
+                ResourceGroupName: '$(webApp.resourceGroup)'
                 SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
-                DockerNamespace: 'mbvcspnlcr.azurecr.io'
+                DockerNamespace: '$(container.registry)'
                 DockerRepository: 'artifact'
                 DockerImageTag: '43921'
-                AppSettings: '-DOCKER_REGISTRY_SERVER_PASSWORD o=OCO3YcZ2D20710XZCNVrSnMNN=q8qc -DOCKER_REGISTRY_SERVER_URL https://mbvcspnlcr.azurecr.io -DOCKER_REGISTRY_SERVER_USERNAME mbvcspnlcr -ASPNETCORE_ENVIRONMENT Development'
+                AppSettings: '-DOCKER_REGISTRY_SERVER_PASSWORD $(registrypassword) -DOCKER_REGISTRY_SERVER_URL $(registryurl) -DOCKER_REGISTRY_SERVER_USERNAME $(registryusername) -ASPNETCORE_ENVIRONMENT Development'
+
+- stage: 'MainDeployment'
+  pool:
+    vmImage: 'ubuntu-latest'
+  dependsOn: Previewing
+  jobs:
+  - deployment: MainDeployment
+    displayName: MainDeployment of the App
+    environment: 'MainDeployment'
+    strategy:
+      runOnce:
+        deploy:
+          steps:    
+            - task: AzureRmWebAppDeployment@4
+              inputs:
+                ConnectionType: 'AzureRM'
+                azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+                appType: 'webAppContainer'
+                WebAppName: '$(webApp.name)'
+                DockerNamespace: '$(container.registry)'
+                DockerRepository: 'artifact'
+                DockerImageTag: '$(Build.BuildId)'
+                AppSettings: '-ASPNETCORE_ENVIRONMENT Development'
+
+            - task: AzureCLI@2
+              enabled: true
+              displayName: Deletion of Webapp slot
+              inputs:
+                azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+                scriptType: 'pscore'
+                scriptLocation: 'inlineScript'
+                inlineScript: 'az webapp deployment slot delete --name $(webApp.name) --resource-group $(webApp.resourceGroup) --slot staging-pr-$(System.PullRequest.PullRequestId)'
+                addSpnToEnvironment: true
+                useGlobalConfig: true
+
+
