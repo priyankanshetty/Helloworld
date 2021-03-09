@@ -37,21 +37,18 @@ steps:
          command: 'Push an image'
          imageName: 'artifact:$(Build.BuildId)'
 
-
-     - task: AzureRmWebAppDeployment@3
-       displayName: 'Preview app deploy'
+     - task: AzureRmWebAppDeployment@4
        inputs:
+         ConnectionType: 'AzureRM'
          azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-         appType: 'applinux'
+         appType: 'webAppContainer'
          WebAppName: 'testingdevopslast'
-         DeployToSlotFlag: true
-         ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'         
-         AzureContainerRegistry: mbvcspnlcr
-         AzureContainerRegistryLoginServer: mbvcspnlcr.azurecr.io
-         AzureContainerRegistryTag: '43938'
-         AzureContainerRegistryImage: 'artifact'
-         SlotName: 'staging-pr-587660925'
-
+         deployToSlotOrASE: true
+         ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
+         SlotName: 'slot5'
+         DockerNamespace: 'https://mbvcspnlcr.azurecr.io'
+         DockerRepository: 'artifact'
+         DockerImageTag: '43766'
 
      - task: PowerShell@2
        enabled: false
