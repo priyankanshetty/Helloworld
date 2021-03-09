@@ -1,10 +1,16 @@
 trigger:
-- master
+- none
 
-pool:
-  vmImage: 'windows-2019'
+stages:
+- stage: Build
 
-steps:
+  pool:
+    vmImage: 'windows-2019'
+
+  jobs:
+  - job: Build
+    continueOnError: false
+    steps:
      - task: AzureCLI@2
        enabled: false
        displayName: Creation of webapp slot
@@ -37,23 +43,6 @@ steps:
          command: 'Push an image'
          imageName: 'artifact:$(Build.BuildId)'
 
-
-     - task: AzureRmWebAppDeployment@3
-       displayName: 'Azure App Service Deploy: testingdevopslast'
-       inputs:
-         azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
-         appType: 'applinux'
-         WebAppName: 'testingdevopslast'
-         DeployToSlotFlag: true
-         ImageSource: Registry
-         AzureContainerRegistry: mbvcspnlcr
-         AzureContainerRegistryImage: artifact
-         AzureContainerRegistryLoginServer: mbvcspnlcr.azurecr.io
-         AzureContainerRegistryTag: 43921
-         ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
-         SlotName: 'slot6'
-
-
      - task: PowerShell@2
        enabled: false
        displayName: Write Staging URL to PR as Commen
@@ -74,3 +63,29 @@ steps:
               Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
               Write-Output "Added previewing url as comment to the pull request"
 
+- stage: 'Previewing'
+  pool:
+    vmImage: 'windows-2019'
+  dependsOn: Build
+  jobs:
+  - deployment: Preview
+    displayName: Previewing-Deploy
+    # creates an environment if it doesn't exist
+    environment: 'Previewing'
+    strategy:
+      runOnce:
+        deploy:
+          steps:    
+            - task: AzureRmWebAppDeployment@4
+              inputs:
+                ConnectionType: 'AzureRM'
+                azureSubscription: 'Azure_CSP_Maistering (6177cf18-f1c2-40c1-9ef5-dc935397a41f)'
+                appType: 'webAppContainer'
+                WebAppName: 'testingdevopslast'
+                deployToSlotOrASE: true
+                ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
+                SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
+                DockerNamespace: 'mbvcspnlcr.azurecr.io'
+                DockerRepository: 'artifact'
+                DockerImageTag: '$(Build.BuildId)'
+                AppSettings: '-WEBSITE_RUN_FROM_PACKAGE 1'
