@@ -45,12 +45,12 @@ steps:
          appType: 'applinux'
          WebAppName: 'testingdevopslast'
          DeployToSlotFlag: true
-         ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
+         ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'         
+         AzureContainerRegistry: mbvcspnlcr
+         AzureContainerRegistryLoginServer: mbvcspnlcr.azurecr.io
+         AzureContainerRegistryTag: '43938'
+         AzureContainerRegistryImage: 'artifact'
          SlotName: 'staging-pr-$(System.PullRequest.PullRequestId)'
-         DockerNamespace: 'mbvcspnlcr.azurecr.io'
-         DockerRepository: 'artifact'
-         DockerImageTag: '$(Build.BuildId)'
-         AppSettings: '-ASPNETCORE_ENVIRONMENT  Development'
 
 
      - task: PowerShell@2
