@@ -5,7 +5,7 @@ stages:
 - stage: Build
 
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'ubuntu-latest'
 
   jobs:
   - job: Build
@@ -65,7 +65,7 @@ stages:
 
 - stage: 'Previewing'
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'ubuntu-latest'
   dependsOn: Build
   jobs:
   - deployment: Preview
@@ -88,4 +88,3 @@ stages:
                 DockerNamespace: 'mbvcspnlcr.azurecr.io'
                 DockerRepository: 'artifact'
                 DockerImageTag: '$(Build.BuildId)'
-                AppSettings: '-WEBSITE_RUN_FROM_PACKAGE 1'
