@@ -52,7 +52,7 @@ steps:
          DockerNamespace: 'mbvcspnlcr.azurecr.io'
          DockerRepository: 'artifact'
          DockerImageTag: '$(Build.BuildId)'
-         AppSettings: '-ASPNETCORE_ENVIRONMENT "Development"'
+         AppSettings: '-ASPNETCORE_ENVIRONMENT Development'
 
      - task: PowerShell@2
        displayName: Write Staging URL to PR as Commen
