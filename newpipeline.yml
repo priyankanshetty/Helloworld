@@ -5,31 +5,27 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-    webApp.name: 'testingdevopsnew'
-    webApp.resourceGroup: 'testingdevopsnew'
-    BuildConfiguration: 'release'
-    github.oauthToken: 'b8f3a051222edd3342c3ca0d7c3abc25ba566142'
+    webApp.name: testingdevopsnew
+    webApp.resourceGroup: testingdevopsnew
+    BuildConfiguration: release
+    github.oauthToken: b8f3a051222edd3342c3ca0d7c3abc25ba566142
 
 steps:
   - task: PowerShell@2
-    displayName: 'Write Staging URL to PR as Comment'
+    displayName: Write Staging URL to PR as Commen
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
     env:
       GITHUB_OATH_TOKEN: $(github.oauthToken)
-    #condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
     inputs:
       targetType: 'inline'
       script: |
-          
-          #create GitHub REST api URL
           $prNumber = $(System.PullRequest.PullRequestNumber)
           $prInfoUrl = 'https://api.github.com/repos/priyankanshetty/Helloworld/pulls/' + $prNumber
           $response = Invoke-RestMethod -URI $prInfoUrl
           $commentUrl = $response.issue_url + '/comments'
           Write-Output "P1 done"
-                # add comment to the PR in GitHub using GitHub REST api
           $authorizationHeaderValue = "token " +  $env:GITHUB_OATH_TOKEN
           $message = "Created staging environment for PR - https://test-staging-pr-" + $prNumber + ".azurewebsites.net/"
           $body = '{"body":"' + $message + '"}'
           Invoke-RestMethod -Method 'Post' -Uri $commentUrl -Headers @{"Authorization" = $authorizationHeaderValue} -Body $body
           Write-Output "Added staging url as comment to GH pull request"
-
