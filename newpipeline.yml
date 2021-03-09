@@ -48,9 +48,8 @@ steps:
          deployToSlotOrASE: true
          ResourceGroupName: 'MBV-CSP-NL-RG-DevOps'
          SlotName: 'slot6'
-         DockerNamespace: 'mbvcspnlcr.azurecr.io'
-         DockerRepository: 'artifact'
-         DockerImageTag: '43921'
+         DockerNamespace: 'https://mbvcspnlcr.azurecr.io'
+         DockerRepository: 'artifact:43921'
 
      - task: PowerShell@2
        enabled: false
