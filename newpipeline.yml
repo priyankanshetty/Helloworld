@@ -19,8 +19,8 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        Write-Output "Adding comment to GitHub pull request via rest api..."
-          # create GitHub REST api URL
+          
+          #create GitHub REST api URL
           $prNumber = $(System.PullRequest.PullRequestNumber)
           $prInfoUrl = 'https://api.github.com/repos/priyankanshetty/Helloworld/pulls/' + $prNumber
           $response = Invoke-RestMethod -URI $prInfoUrl
